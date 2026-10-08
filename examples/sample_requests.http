@@ -1,0 +1,83 @@
+### LLM Output Guardian 接口调用示例（VS Code REST Client / JetBrains HTTP Client）
+@host = http://localhost:8000
+
+### 健康检查
+GET {{host}}/health
+
+### ① 完整流水线：Markdown围栏 + 类型转换（业务简写schema）
+POST {{host}}/v1/clean
+Content-Type: application/json
+
+{
+  "raw_text": "好的，结果如下：```json\n{\"gender\":\"女\",\"age\":\"28\",\"risk_level\":\"中\"}\n```",
+  "schema": {
+    "gender": ["男", "女"],
+    "age": "integer",
+    "risk_level": ["低", "中", "高"]
+  },
+  "policy": {
+    "unknown_fields": "drop",
+    "null_policy": "default"
+  }
+}
+
+### ② 标准JSON Schema：age 范围约束（负数被判 invalid）
+POST {{host}}/v1/clean
+Content-Type: application/json
+
+{
+  "raw_text": "{\"age\": -5}",
+  "schema": {
+    "type": "object",
+    "properties": {"age": {"type": "integer", "minimum": 0}},
+    "required": ["age"]
+  }
+}
+
+### ③ 截断修复（流式输出被截断）
+POST {{host}}/v1/clean
+Content-Type: application/json
+
+{
+  "raw_text": "{\"gender\": \"男\", \"age\": 50, \"risk_level\": \"中",
+  "schema": {
+    "gender": ["男", "女"],
+    "age": "integer",
+    "risk_level": ["低", "中", "高"]
+  }
+}
+
+### ④ 仅校验（输入已是JSON值）
+POST {{host}}/v1/validate
+Content-Type: application/json
+
+{
+  "data": {"age": 200},
+  "schema": {"properties": {"age": {"maximum": 150}}}
+}
+
+### ⑤ 修复但不做schema强校验
+POST {{host}}/v1/repair
+Content-Type: application/json
+
+{
+  "raw_text": "{'a': 1,}",
+  "schema": {"a": "integer"}
+}
+
+### ⑥ 批量处理
+POST {{host}}/v1/clean/batch
+Content-Type: application/json
+
+{
+  "items": [
+    {"raw_text": "{\"a\": 1}"},
+    {"raw_text": "无JSON内容"}
+  ]
+}
+
+### ⑦ 按 trace_id 查询溯源记录（从上一次响应中取 trace_id）
+GET {{host}}/v1/traces/REPLACE_WITH_TRACE_ID
+
+### 指标
+GET {{host}}/metrics

@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+data/
+.pytest_cache/
+.ruff_cache/
+*.db
+.trae/
+test_report.html
+api_smoke_results.json

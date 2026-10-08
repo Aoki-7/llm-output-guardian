@@ -1,0 +1,42 @@
+# 置信度罚分配置：每个审计动作对应的默认罚分与归类
+# 归类相同的动作共享封顶罚分（见 caps），避免同一类问题被重复重罚
+actions:
+  # —— 语法清洗（全局，path 为空）——
+  strip_fence: {delta: -0.05}
+  xml_extract: {delta: -0.05}
+  extract_json: {delta: -0.05}
+  normalize_chars: {delta: -0.05}
+
+  # —— 宽容解析（统一归类 lenient_parse，共享封顶）——
+  lenient_comment: {delta: -0.05, category: lenient_parse}
+  lenient_quote: {delta: -0.05, category: lenient_parse}
+  lenient_unquoted_key: {delta: -0.05, category: lenient_parse}
+  lenient_trailing_comma: {delta: -0.05, category: lenient_parse}
+  lenient_literal: {delta: -0.05, category: lenient_parse}
+  lenient_nan: {delta: -0.10, category: lenient_parse}
+
+  # —— 截断修复 ——
+  truncation_repair: {delta: -0.20}
+
+  # —— LLM 兜底（罚分通过 llm_cap 处理）——
+  llm_repair: {delta: 0.0}
+  llm_unavailable: {delta: 0.0}
+
+  # —— 字段级修复（path 非空）——
+  type_coercion: {delta: -0.10}
+  default_fill: {delta: -0.15}
+  enum_normalize: {delta: -0.05}
+  enum_alias: {delta: -0.10}
+  enum_fuzzy: {delta: -0.25}
+  field_drop: {delta: -0.05}
+  rename_field: {delta: -0.05}
+  array_wrap: {delta: -0.05}
+  array_unwrap: {delta: -0.10}
+  object_kv: {delta: -0.15}
+
+# 归类罚分封顶（负向最大罚分）
+caps:
+  lenient_parse: -0.15
+
+# LLM 参与修复时，全局置信度封顶
+llm_cap: 0.6

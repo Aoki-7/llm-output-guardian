@@ -1,0 +1,16 @@
+services:
+  llm-output-guardian:
+    build: .
+    image: llm-output-guardian:0.1.0
+    ports:
+      - "8000:8000"
+    environment:
+      GUARDIAN_PERSIST: "1"
+      GUARDIAN_DB_PATH: /app/data/traces.db
+      # 可选 LLM 兜底（不配置则完全离线）
+      # GUARDIAN_LLM_BASE_URL: https://api.openai.com/v1
+      # GUARDIAN_LLM_API_KEY: ${GUARDIAN_LLM_API_KEY}
+      # GUARDIAN_LLM_MODEL: gpt-4o-mini
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped

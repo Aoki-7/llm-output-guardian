@@ -1,0 +1,100 @@
+[
+  {
+    "name": "valid_clean",
+    "scene": "规范输出",
+    "raw": "{\"gender\": \"男\", \"age\": 30, \"risk_level\": \"低\"}",
+    "schema": {"gender": ["男", "女"], "age": "integer", "risk_level": ["低", "中", "高"]},
+    "expected_status": "valid",
+    "expected_result": {"gender": "男", "age": 30, "risk_level": "低"}
+  },
+  {
+    "name": "markdown_fence",
+    "scene": "Markdown围栏",
+    "raw": "好的，结果如下：```json\n{\"gender\": \"女\", \"age\": 28, \"risk_level\": \"中\"}\n```\n希望对你有帮助",
+    "schema": {"gender": ["男", "女"], "age": "integer", "risk_level": ["低", "中", "高"]},
+    "expected_status": "repaired",
+    "expected_result": {"gender": "女", "age": 28, "risk_level": "中"}
+  },
+  {
+    "name": "preamble_thinking",
+    "scene": "思考链废话",
+    "raw": "让我先分析一下用户画像，然后给出结论。\n{\"gender\": \"男\", \"age\": 41, \"risk_level\": \"高\"}\n以上。",
+    "schema": {"gender": ["男", "女"], "age": "integer", "risk_level": ["低", "中", "高"]},
+    "expected_status": "repaired",
+    "expected_result": {"gender": "男", "age": 41, "risk_level": "高"}
+  },
+  {
+    "name": "single_quote_trailing_comma",
+    "scene": "单引号+尾逗号",
+    "raw": "{'gender': '女', 'age': 35,}",
+    "schema": {"gender": ["男", "女"], "age": "integer"},
+    "expected_status": "repaired",
+    "expected_result": {"gender": "女", "age": 35}
+  },
+  {
+    "name": "truncated_output",
+    "scene": "流式截断",
+    "raw": "{\"gender\": \"男\", \"age\": 50, \"risk_level\": \"中",
+    "schema": {"gender": ["男", "女"], "age": "integer", "risk_level": ["低", "中", "高"]},
+    "expected_status": "repaired",
+    "expected_result": {"gender": "男", "age": 50, "risk_level": "中"}
+  },
+  {
+    "name": "type_coercion",
+    "scene": "类型转换",
+    "raw": "{\"gender\": \"男\", \"age\": \"33\"}",
+    "schema": {"gender": ["男", "女"], "age": "integer"},
+    "expected_status": "repaired",
+    "expected_result": {"gender": "男", "age": 33}
+  },
+  {
+    "name": "enum_fuzzy",
+    "scene": "枚举模糊修正",
+    "raw": "{\"risk_level\": \"低凤险\"}",
+    "schema": {"risk_level": ["低风险", "中风险", "高风险"]},
+    "policy": {"fuzzy_enum_threshold": 0.6},
+    "expected_status": "repaired",
+    "expected_result": {"risk_level": "低风险"}
+  },
+  {
+    "name": "unknown_field_drop",
+    "scene": "未知字段删除",
+    "raw": "{\"age\": 30, \"extra\": \"垃圾\"}",
+    "schema": {"age": "integer"},
+    "policy": {"unknown_fields": "drop"},
+    "expected_status": "repaired",
+    "expected_result": {"age": 30}
+  },
+  {
+    "name": "default_fill",
+    "scene": "缺失字段补全",
+    "raw": "{\"age\": 30}",
+    "schema": {"age": "integer", "risk_level": ["低", "中", "高"]},
+    "policy": {"defaults": {"risk_level": "低"}},
+    "expected_status": "repaired",
+    "expected_result": {"age": 30, "risk_level": "低"}
+  },
+  {
+    "name": "scalar_wrap_array",
+    "scene": "标量包裹数组",
+    "raw": "{\"tags\": \"新闻\"}",
+    "schema": {"tags": ["string"]},
+    "expected_status": "repaired",
+    "expected_result": {"tags": ["新闻"]}
+  },
+  {
+    "name": "xml_wrapped",
+    "scene": "XML包裹",
+    "raw": "<result>{\"age\": 30}</result>",
+    "schema": {"age": "integer"},
+    "expected_status": "repaired",
+    "expected_result": {"age": 30}
+  },
+  {
+    "name": "negative_age_range",
+    "scene": "数值范围违规",
+    "raw": "{\"age\": -5}",
+    "schema": {"type": "object", "properties": {"age": {"type": "integer", "minimum": 0}}, "required": ["age"]},
+    "expected_status": "invalid"
+  }
+]

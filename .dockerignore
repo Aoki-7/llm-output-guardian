@@ -1,0 +1,8 @@
+.venv/
+tests/
+data/
+.trae/
+examples/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
